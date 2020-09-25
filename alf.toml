@@ -1,0 +1,5 @@
+bookmarks = [
+    {name = "DuckDuckGo", url = "https://www.duckduckgo.com"},
+    {name = "Google", url = "https://www.google.ch"},
+    {name = "Github", url = "https://www.github.com"}
+]
