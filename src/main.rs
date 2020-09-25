@@ -4,6 +4,7 @@
 use serde::{Serialize, Deserialize};
 use clap::{Arg, App, SubCommand};
 use std::collections::HashMap;
+use std::env;
 
 trait Command {
     fn run(self);
@@ -20,8 +21,8 @@ struct Open {
 
 impl Command for List {
     fn run(self) {
-        let bookshelf = Bookshelf::from_file("./alf.toml");
-
+        let home = env::var("HOME").unwrap();
+        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str());
         for bookmark in bookshelf.bookmarks {
             println!("{}:\n\t{}", bookmark.name, bookmark.url);
         }
@@ -36,7 +37,9 @@ impl Command for List {
 
 impl Command for Open {
     fn run(self) {
-        let bookshelf = Bookshelf::from_file("./alf.toml");
+
+        let home = env::var("HOME").unwrap();
+        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str());
         if let Some(bookmark) = bookshelf.find_by_name(self.args.get("name").unwrap().as_str()) {
             if webbrowser::open(bookmark.url.as_str()).is_ok() {
 
