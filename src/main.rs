@@ -87,8 +87,7 @@ fn main() {
                 Arg::with_name("tag")
                     .short("t")
                     .value_name("TAG")
-                    .takes_value(true)
-                    .required(true),
+                    .takes_value(true),
             )
 
         )
