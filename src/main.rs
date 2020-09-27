@@ -41,25 +41,20 @@ impl Bookshelf {
         None
     }
 
-    // pub fn find_by_tag(self, tag: &str) -> Option<Vec<&Bookmark>> {
-    //     // let vec: &Vec<_>= &self
-    //     //     .bookmarks
-    //     //     .into_iter()
-    //     //     .filter(|x| x.clone().has_tag(tag))
-    //     //     .collect();
-    //     let mut vec = Vec::new();
-    //     for bookmark in &self.bookmarks {
-    //         if bookmark.has_tag(tag) {
-    //             vec.push(bookmark);
-    //         }
-    //     }
-
-    //     if vec.len() == 0 {
-    //         return None;
-    //     }
-
-    //     Some(vec)
-    // }
+    pub fn find_by_tag(&self, tag: &str) -> Vec<&Bookmark> {
+        // let vec: &Vec<_>= &self
+        //     .bookmarks
+        //     .into_iter()
+        //     .filter(|x| x.clone().has_tag(tag))
+        //     .collect();
+        let mut vec = Vec::new();
+        for bookmark in &self.bookmarks {
+            if bookmark.has_tag(tag) {
+                vec.push(bookmark);
+            }
+        }
+        vec
+    }
 }
 
 impl Bookmark {
@@ -87,15 +82,23 @@ fn main() {
                 .value_name("STORE")
                 .takes_value(true),
         )
-        .subcommand(SubCommand::with_name("list"))
+        .subcommand(
+            SubCommand::with_name("list").arg(
+                Arg::with_name("tag")
+                    .short("t")
+                    .value_name("TAG")
+                    .takes_value(true)
+                    .required(true),
+            )
+
+        )
         .subcommand(
             SubCommand::with_name("open").arg(
                 Arg::with_name("name")
                     .short("n")
                     .value_name("NAME")
                     .takes_value(true)
-                    .required(true)
-                    .help("print debug information verbosely"),
+                    .required(true),
             ),
         )
         .get_matches();
@@ -105,8 +108,14 @@ fn main() {
         let mut map = HashMap::new();
         map.insert("name".to_string(), x.to_string());
         command::Open::with_arguments(map).run();
-    } else {
-        command::List::with_arguments(HashMap::new()).run();
+    }
+
+    if let Some(matches) = matches.subcommand_matches("list") {
+        let mut map = HashMap::new();
+        if let Some(tag) = matches.value_of("tag") {
+            map.insert("tag".to_string(), tag.to_string());
+        }
+        command::List::with_arguments(map).run();
     }
 }
 
@@ -201,5 +210,37 @@ bookmarks = [
         assert_eq!(true, google.has_tag("search engine"));
         assert_eq!(false, google.has_tag("i am not here"));
         assert_eq!(false, empty.has_tag("i am not here"));
+    }
+
+    #[test]
+    fn test_bookshelf_find_by_tag() {
+        let google = Bookmark {
+            name: "Google".to_string(),
+            url: "https://www.google.com".to_string(),
+            tags: vec!["search engine".to_string()],
+        };
+        let duckduckgo = Bookmark {
+            name: "DuckDuckGo".to_string(),
+            url: "https://www.duckduckgo.com".to_string(),
+            tags: vec!["search engine".to_string()],
+        };
+        let github = Bookmark {
+            name: "Github".to_string(),
+            url: "https://www.github.com".to_string(),
+            tags: Vec::new(),
+        };
+
+        let bookshelf = Bookshelf {
+            bookmarks: vec![
+                google.clone(),
+                duckduckgo.clone(),
+                github.clone()
+            ],
+        };
+
+        let rhs = bookshelf.find_by_tag("search engine");
+        assert_eq!(vec![&google, &duckduckgo], rhs);
+        let lhs: Vec<&Bookmark> = Vec::new();
+        assert_eq!(lhs, bookshelf.find_by_tag("i am not here"));
     }
 }
