@@ -2,74 +2,10 @@
 // alf list # lists all bookmarks
 // alf open DuckDuckGo # opens url with name DuckDuckGo
 use clap::{App, Arg, SubCommand};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-mod command;
-use command::Command;
-
-#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
-struct Bookmark {
-    name: String,
-    url: String,
-    tags: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Eq, PartialEq)]
-struct Bookshelf {
-    bookmarks: Vec<Bookmark>,
-}
-
-impl Bookshelf {
-    pub fn from_file(file: &str) -> Bookshelf {
-        use std::fs::File;
-        use std::io::prelude::*;
-        let mut file = File::open(file).unwrap();
-
-        let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-        let bookshelf = toml::from_str(content.as_str()).unwrap();
-        bookshelf
-    }
-
-    pub fn find_by_name(&self, name: &str) -> Option<&Bookmark> {
-        for bookmark in &self.bookmarks {
-            if bookmark.name.to_lowercase() == name.to_lowercase() {
-                return Some(&bookmark)
-            }
-        }
-        None
-    }
-
-    pub fn find_by_tag(&self, tag: &str) -> Vec<&Bookmark> {
-        // let vec: &Vec<_>= &self
-        //     .bookmarks
-        //     .into_iter()
-        //     .filter(|x| x.clone().has_tag(tag))
-        //     .collect();
-        let mut vec = Vec::new();
-        for bookmark in &self.bookmarks {
-            if bookmark.has_tag(tag) {
-                vec.push(bookmark);
-            }
-        }
-        vec
-    }
-}
-
-impl Bookmark {
-    pub fn new(name: &str, url: &str, tags: Vec<String>) -> Bookmark {
-        Bookmark {
-            name: name.to_string(),
-            url: url.to_string(),
-            tags,
-        }
-    }
-
-    pub fn has_tag(&self, tag: &str) -> bool {
-        self.tags.contains(&tag.to_string())
-    }
-}
+use alf::command;
+use alf::command::Command;
 
 fn main() {
     let matches = App::new("Alf")
@@ -107,20 +43,21 @@ fn main() {
         let mut map = HashMap::new();
         map.insert("name".to_string(), x.to_string());
         command::Open::with_arguments(map).run();
-    }
-
-    if let Some(matches) = matches.subcommand_matches("list") {
+    } else if let Some(matches) = matches.subcommand_matches("list") {
         let mut map = HashMap::new();
         if let Some(tag) = matches.value_of("tag") {
             map.insert("tag".to_string(), tag.to_string());
         }
+        command::List::with_arguments(map).run();
+    } else {
+        let map = HashMap::new();
         command::List::with_arguments(map).run();
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use alf::bookshelf::*;
     use rand::prelude::*;
     use std::fs::File;
     use std::io::prelude::*;

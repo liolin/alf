@@ -1,7 +1,7 @@
 use std::env;
 use std::collections::HashMap;
 
-use crate::Bookshelf;
+use crate::bookshelf::Bookshelf;
 
 pub trait Command {
     fn run(self);
