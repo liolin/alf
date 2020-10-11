@@ -2,7 +2,6 @@
 // alf list # lists all bookmarks
 // alf open DuckDuckGo # opens url with name DuckDuckGo
 use clap::{App, Arg, SubCommand, AppSettings};
-use std::collections::HashMap;
 use std::boxed::Box;
 
 use alf::command;
@@ -42,22 +41,12 @@ fn main() -> Result {
         .get_matches();
 
 
-    let mut map = HashMap::new();
     let command: Box<dyn Command> = match matches.subcommand() {
         ("open", Some(matches)) => {
-            let name = matches.value_of("name").unwrap();
-            map.insert("name".to_string(), name.to_string());
-            Box::new(command::Open::with_arguments(map))
+            Box::new(command::Open::with_arguments(matches))
         },
         ("list", Some(matches)) => {
-            if let Some(tag) = matches.value_of("tag") {
-                map.insert("tag".to_string(), tag.to_string());
-            }
-            Box::new(command::List::with_arguments(map))
-        }
-        ("list", None) => {
-            let map = HashMap::new();
-            Box::new(command::List::with_arguments(map))
+            Box::new(command::List::with_arguments(matches))
         }
         ("", None) => {
             return Err(alf::AlfError::NoSubcommand);
