@@ -9,14 +9,18 @@ pub use crate::bookshelf::*;
 #[derive(Error, Debug)]
 pub enum AlfError {
     #[error(transparent)]
-    Webbrowser(#[from] std::io::Error),
+    IoError(#[from] std::io::Error),
+
     #[error(transparent)]
     EnvError(#[from] std::env::VarError),
+
     #[error("Argument was not found")]
     HashMapError,
+
     #[error("Bookmark was not found")]
     BookmarkNotFound,
-    #[error("unknown data store error")]
+
+    #[error("Unknown error is occured")]
     Unknown,
 }
 
