@@ -1,0 +1,4 @@
+* Goals [1/3]
+- [ ] server/api
+- [X] Read bookmarks from file
+- [ ] config file
