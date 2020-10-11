@@ -20,6 +20,12 @@ pub enum AlfError {
     #[error("Bookmark was not found")]
     BookmarkNotFound,
 
+    #[error("No subcommand specified")]
+    NoSubcommand,
+
+    #[error("Invalid subcommand specified")]
+    InvalidSubcommand,
+
     #[error("Unknown error is occured")]
     Unknown,
 }

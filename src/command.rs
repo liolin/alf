@@ -5,8 +5,7 @@ use crate::bookshelf::Bookshelf;
 use crate::{AlfError, Result};
 
 pub trait Command {
-    fn run(self) -> Result;
-    fn with_arguments(args: HashMap<String, String>) -> Self;
+    fn run(&self) -> Result;
 }
 
 pub struct List {
@@ -18,7 +17,7 @@ pub struct Open {
 }
 
 impl Command for List {
-    fn run(self) -> Result {
+    fn run(&self) -> Result {
         let home = env::var("HOME")?;
         let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
 
@@ -36,8 +35,10 @@ impl Command for List {
         }
         Ok(())
     }
+}
 
-    fn with_arguments(args: HashMap<String, String>) -> Self {
+impl List {
+    pub fn with_arguments(args: HashMap<String, String>) -> Self {
         Self {
             args
         }
@@ -45,7 +46,7 @@ impl Command for List {
 }
 
 impl Command for Open {
-    fn run(self) -> Result {
+    fn run(&self) -> Result {
         let home = env::var("HOME")?;
         let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
 
@@ -62,8 +63,10 @@ impl Command for Open {
             None => Err(AlfError::BookmarkNotFound)
         }
     }
+}
 
-    fn with_arguments(args: HashMap<String, String>) -> Self {
+impl Open {
+    pub fn with_arguments(args: HashMap<String, String>) -> Self {
         Self {
             args
         }

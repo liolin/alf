@@ -1,11 +1,12 @@
 // read all bookmarks from a storage and present as a search engine
 // alf list # lists all bookmarks
 // alf open DuckDuckGo # opens url with name DuckDuckGo
-use clap::{App, Arg, SubCommand};
+use clap::{App, Arg, SubCommand, AppSettings};
 use std::collections::HashMap;
+use std::boxed::Box;
 
 use alf::command;
-use alf::command::Command;
+use alf::Command;
 use alf::Result;
 
 fn main() -> Result {
@@ -13,6 +14,7 @@ fn main() -> Result {
         .version("0.1.0")
         .author("Olivier Lischer <olivier.lischer@liolin.ch>")
         .about("Access your bookmarks from the CLI")
+        .setting(AppSettings::SubcommandRequired)
         .arg(
             Arg::with_name("store")
                 .short("s")
@@ -39,21 +41,31 @@ fn main() -> Result {
         )
         .get_matches();
 
-    if let Some(matches) = matches.subcommand_matches("open") {
-        let x = matches.value_of("name").unwrap();
-        let mut map = HashMap::new();
-        map.insert("name".to_string(), x.to_string());
-        command::Open::with_arguments(map).run()?;
-    } else if let Some(matches) = matches.subcommand_matches("list") {
-        let mut map = HashMap::new();
-        if let Some(tag) = matches.value_of("tag") {
-            map.insert("tag".to_string(), tag.to_string());
-        }
-        command::List::with_arguments(map).run()?;
-    } else {
-        let map = HashMap::new();
-        command::List::with_arguments(map).run()?;
-    }
-    Ok(())
-}
 
+    let mut map = HashMap::new();
+    let command: Box<dyn Command> = match matches.subcommand() {
+        ("open", Some(matches)) => {
+            let name = matches.value_of("name").unwrap();
+            map.insert("name".to_string(), name.to_string());
+            Box::new(command::Open::with_arguments(map))
+        },
+        ("list", Some(matches)) => {
+            if let Some(tag) = matches.value_of("tag") {
+                map.insert("tag".to_string(), tag.to_string());
+            }
+            Box::new(command::List::with_arguments(map))
+        }
+        ("list", None) => {
+            let map = HashMap::new();
+            Box::new(command::List::with_arguments(map))
+        }
+        ("", None) => {
+            return Err(alf::AlfError::NoSubcommand);
+        },
+        (_, _) => {
+            return Err(alf::AlfError::InvalidSubcommand);
+        }
+
+    };
+    command.run()
+}
