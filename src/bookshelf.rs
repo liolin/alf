@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
 pub struct Bookmark {
@@ -47,6 +48,12 @@ impl Bookshelf {
         }
         vec
     }
+    pub fn write(&self, writer: &mut impl Write) -> std::io::Result<()> {
+        for bookmark in &self.bookmarks {
+            bookmark.write(writer)?;
+        }
+        Ok(())
+    }
 }
 
 impl Bookmark {
@@ -60,5 +67,14 @@ impl Bookmark {
 
     pub fn has_tag(&self, tag: &str) -> bool {
         self.tags.contains(&tag.to_string())
+    }
+
+    pub fn write(&self, writer: &mut impl Write) -> std::io::Result<()> {
+        writeln!(writer, "{}:\n\t{}", self.name, self.url)?;
+        if !self.tags.is_empty() {
+            writeln!(writer, "\tTags: {}\n", self.tags.join(", "))
+        } else {
+            writeln!(writer, "\tTags: empty\n")
+        }
     }
 }

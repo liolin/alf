@@ -120,3 +120,34 @@ fn test_bookshelf_find_by_tag() {
     let lhs: Vec<&Bookmark> = Vec::new();
     assert_eq!(lhs, bookshelf.find_by_tag("i am not here"));
 }
+
+#[test]
+fn test_bookshelf_write() -> std::io::Result<()> {
+    let duckduckgo = Bookmark {
+        name: "DuckDuckGo".to_string(),
+        url: "https://www.duckduckgo.com".to_string(),
+        tags: vec!["search engine".to_string()],
+    };
+    let github = Bookmark {
+        name: "Github".to_string(),
+        url: "https://www.github.com".to_string(),
+        tags: Vec::new(),
+    };
+
+
+    let bookshelf = Bookshelf {
+        bookmarks: vec![
+            duckduckgo.clone(),
+            github.clone()
+        ],
+    };
+
+    let mut bytes = Vec::new();
+    let mut test_bytes = Vec::new();
+    duckduckgo.write(&mut test_bytes)?;
+    github.write(&mut test_bytes)?;
+
+    bookshelf.write(&mut bytes)?;
+    assert_eq!(String::from_utf8(test_bytes), String::from_utf8(bytes));
+    Ok(())
+}

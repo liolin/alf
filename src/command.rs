@@ -23,16 +23,14 @@ impl<'a> Command for List<'a> {
         let home = env::var("HOME")?;
         let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
 
-        if let Some(tag) = self.args.value_of("tag") {
-            for bookmark in bookshelf.find_by_tag(tag) {
-                println!("{}:\n\t{}", bookmark.name, bookmark.url);
-            }
-        } else {
-            for bookmark in bookshelf.bookmarks {
-                println!("{}:\n\t{}", bookmark.name, bookmark.url);
-                if bookmark.tags.len() > 0 {
-                    println!("\tTags: {}", bookmark.tags.join(" "));
+        match self.args.value_of("tag") {
+            Some(tag) => {
+                for bookmark in bookshelf.find_by_tag(tag) {
+                    bookmark.write(&mut std::io::stdout())?;
                 }
+            }
+            None => {
+                bookshelf.write(&mut std::io::stdout())?;
             }
         }
         Ok(())
