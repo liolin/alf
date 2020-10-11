@@ -13,15 +13,15 @@ pub struct Bookshelf {
 }
 
 impl Bookshelf {
-    pub fn from_file(file: &str) -> Bookshelf {
+    pub fn from_file(file: &str) -> Result<Bookshelf, std::io::Error> {
         use std::fs::File;
         use std::io::prelude::*;
-        let mut file = File::open(file).unwrap();
+        let mut file = File::open(file)?;
 
         let mut content = String::new();
-        file.read_to_string(&mut content).unwrap();
-        let bookshelf = toml::from_str(content.as_str()).unwrap();
-        bookshelf
+        file.read_to_string(&mut content)?;
+        let bookshelf = toml::from_str(content.as_str())?;
+        Ok(bookshelf)
     }
 
     pub fn find_by_name(&self, name: &str) -> Option<&Bookmark> {

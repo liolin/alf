@@ -41,7 +41,7 @@ bookmarks = [
             },
         ],
     };
-    let rhs = Bookshelf::from_file(path.as_str());
+    let rhs = Bookshelf::from_file(path.as_str()).unwrap();
     assert_eq!(lhs, rhs);
 }
 

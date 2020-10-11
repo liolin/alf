@@ -6,8 +6,9 @@ use std::collections::HashMap;
 
 use alf::command;
 use alf::command::Command;
+use alf::Result;
 
-fn main() {
+fn main() -> Result {
     let matches = App::new("Alf")
         .version("0.1.0")
         .author("Olivier Lischer <olivier.lischer@liolin.ch>")
@@ -42,16 +43,17 @@ fn main() {
         let x = matches.value_of("name").unwrap();
         let mut map = HashMap::new();
         map.insert("name".to_string(), x.to_string());
-        command::Open::with_arguments(map).run();
+        command::Open::with_arguments(map).run()?;
     } else if let Some(matches) = matches.subcommand_matches("list") {
         let mut map = HashMap::new();
         if let Some(tag) = matches.value_of("tag") {
             map.insert("tag".to_string(), tag.to_string());
         }
-        command::List::with_arguments(map).run();
+        command::List::with_arguments(map).run()?;
     } else {
         let map = HashMap::new();
-        command::List::with_arguments(map).run();
+        command::List::with_arguments(map).run()?;
     }
+    Ok(())
 }
 

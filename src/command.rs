@@ -2,9 +2,10 @@ use std::env;
 use std::collections::HashMap;
 
 use crate::bookshelf::Bookshelf;
+use crate::{AlfError, Result};
 
 pub trait Command {
-    fn run(self);
+    fn run(self) -> Result;
     fn with_arguments(args: HashMap<String, String>) -> Self;
 }
 
@@ -17,9 +18,9 @@ pub struct Open {
 }
 
 impl Command for List {
-    fn run(self) {
-        let home = env::var("HOME").unwrap();
-        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str());
+    fn run(self) -> Result {
+        let home = env::var("HOME")?;
+        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
 
         if let Some(tag) = self.args.get("tag") {
             for bookmark in bookshelf.find_by_tag(tag) {
@@ -28,8 +29,12 @@ impl Command for List {
         } else {
             for bookmark in bookshelf.bookmarks {
                 println!("{}:\n\t{}", bookmark.name, bookmark.url);
+                if bookmark.tags.len() > 0 {
+                    println!("\tTags: {}", bookmark.tags.join(" "));
+                }
             }
         }
+        Ok(())
     }
 
     fn with_arguments(args: HashMap<String, String>) -> Self {
@@ -40,15 +45,22 @@ impl Command for List {
 }
 
 impl Command for Open {
-    fn run(self) {
-        let home = env::var("HOME").unwrap();
-        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str());
-        if let Some(bookmark) = bookshelf.find_by_name(self.args.get("name").unwrap().as_str()) {
-            if webbrowser::open(bookmark.url.as_str()).is_ok() {
+    fn run(self) -> Result {
+        let home = env::var("HOME")?;
+        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
 
-            }
+        let x =  bookshelf
+            .find_by_name(self.args.get("name")
+                          .ok_or(AlfError::HashMapError)?
+                          .as_str());
+
+        match x {
+            Some(bookmark) => {
+                let _ = webbrowser::open(bookmark.url.as_str())?;
+                Ok(())
+            },
+            None => Err(AlfError::BookmarkNotFound)
         }
-
     }
 
     fn with_arguments(args: HashMap<String, String>) -> Self {
