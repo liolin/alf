@@ -3,12 +3,14 @@
 // alf open DuckDuckGo # opens url with name DuckDuckGo
 use clap::{App, Arg, SubCommand, AppSettings};
 use std::boxed::Box;
+use std::env;
 
-use alf::command;
-use alf::Command;
+use alf::{Command, Open, List, Config};
 use alf::Result;
 
 fn main() -> Result {
+    let config = Config::from_file(format!("{}/.config/alf.toml", env::var("HOME")?).as_str())?;
+
     let matches = App::new("Alf")
         .version("0.1.0")
         .author("Olivier Lischer <olivier.lischer@liolin.ch>")
@@ -43,10 +45,10 @@ fn main() -> Result {
 
     let command: Box<dyn Command> = match matches.subcommand() {
         ("open", Some(matches)) => {
-            Box::new(command::Open::with_arguments(matches))
+            Box::new(Open::with_arguments(matches))
         },
         ("list", Some(matches)) => {
-            Box::new(command::List::with_arguments(matches))
+            Box::new(List::with_arguments(matches))
         }
         ("", None) => {
             return Err(alf::AlfError::NoSubcommand);
@@ -56,5 +58,5 @@ fn main() -> Result {
         }
 
     };
-    command.run()
+    command.run(&config)
 }

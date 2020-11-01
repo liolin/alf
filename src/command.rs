@@ -1,27 +1,23 @@
-use std::env;
-
 use crate::bookshelf::Bookshelf;
 use crate::{AlfError, Result};
+use crate::Config;
 
 pub trait Command {
-    fn run(&self) -> Result;
+    fn run(&self, config: &Config) -> Result;
 }
 
 pub struct List<'a> {
-    // args: HashMap<String, String>,
     args: &'a clap::ArgMatches<'a>
 
 }
 
 pub struct Open<'a> {
-    // args: HashMap<String, String>
-        args: &'a clap::ArgMatches<'a>
+    args: &'a clap::ArgMatches<'a>
 }
 
 impl<'a> Command for List<'a> {
-    fn run(&self) -> Result {
-        let home = env::var("HOME")?;
-        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
+    fn run(&self, config: &Config) -> Result {
+        let bookshelf = Bookshelf::from_file(config.bookmark_file.as_str())?;
 
         match self.args.value_of("tag") {
             Some(tag) => {
@@ -46,9 +42,8 @@ impl<'a> List<'a> {
 }
 
 impl<'a> Command for Open<'a> {
-    fn run(&self) -> Result {
-        let home = env::var("HOME")?;
-        let bookshelf = Bookshelf::from_file(format!("{}/.alf.toml", home).as_str())?;
+    fn run(&self, config: &Config) -> Result {
+        let bookshelf = Bookshelf::from_file(config.bookmark_file.as_str())?;
 
         let x =  bookshelf
             .find_by_name(self.args.value_of("name")
